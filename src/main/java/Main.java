@@ -1,6 +1,4 @@
-import dbhelper.DBH;
-
-import java.lang.invoke.LambdaMetafactory;
+import dbhelper.DbHelper;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -9,14 +7,11 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         try {
-
-            DBH db = new DBH();
+            DbHelper db = new DbHelper();
             Scanner sc = new Scanner(System.in);
-
-            System.out.println("Application Started..");
-
-
+            System.out.println("Application started..");
             while (true) {
+
                 System.out.println("Enter Username: ");
                 String uname = sc.nextLine().trim();
                 if (uname.isEmpty()) {
@@ -27,7 +22,7 @@ public class Main {
                     System.out.println("Exiting....");
                     break;
                 }
-                Integer acc_no = db.userExists(uname);
+                Integer acc_no = db.getAccountNoByUsername(uname);
                 if (acc_no == null) {
                     System.out.println("Username not found!! Try again..");
                     continue;
@@ -60,7 +55,7 @@ public class Main {
                 
                     switch (action) {
                         case 1:
-                            double bal = db.view_balance(acc_no);
+                            double bal = db.viewBalance(acc_no);
                             System.out.println("Balance: " + bal);
                             break;
 
