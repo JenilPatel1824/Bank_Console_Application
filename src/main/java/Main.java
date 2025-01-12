@@ -16,30 +16,26 @@ public class Main {
             logger.info("Application started..");
 
             while (true) {
-                logger.info("Prompting for Username...");
                 System.out.println("Enter Username: ");
                 String uname = sc.nextLine().trim();
 
                 if (uname.isEmpty()) {
                     logger.warn("Username is empty. Prompting user to try again.");
-                    System.out.println("Username cannot be empty. Please try again.");
                     continue;
                 }
 
                 if (uname.equalsIgnoreCase("exit")) {
                     logger.info("User requested to exit.");
-                    System.out.println("Exiting....");
                     break;
                 }
 
                 Integer acc_no = db.getAccountNoByUsername(uname);
                 if (acc_no == null) {
                     logger.error("Username {} not found!", uname);
-                    System.out.println("Username not found!! Try again..");
                     continue;
                 }
 
-                logger.info("Welcome {}", uname);
+                logger.info("login successful for {}", uname);
                 System.out.println("Welcome " + uname);
                 System.out.println("Select action: ");
                 System.out.println("1. Check Balance");
@@ -50,21 +46,17 @@ public class Main {
                 int action = 0;
                 while (true) {
                     try {
-                        logger.info("Prompting user for action selection.");
                         System.out.println("Select: ");
                         action = sc.nextInt();
                         if(action == 4){
                             sc.nextLine();
                             break;
                         }
-
                     } catch (InputMismatchException e) {
                         sc.nextLine();
                         logger.warn("Invalid input provided. Asking user to enter valid input.");
-                        System.out.println("Please enter valid Input ");
                         continue;
                     }
-
                     switch (action) {
                         case 1:
                             double bal = db.viewBalance(acc_no);
@@ -81,16 +73,13 @@ public class Main {
                             } catch (InputMismatchException e) {
                                 sc.nextLine();
                                 logger.warn("Invalid deposit amount entered.");
-                                System.out.println("Ammount not valid try again.. ");
                                 continue;
                             }
                             if (ammount > 0) {
                                 double curr_bal = db.deposit(acc_no, ammount);
                                 logger.info("Deposit successful. New Balance: {}", curr_bal);
-                                System.out.println("Deposit successful. New Balance: " + curr_bal);
                             } else {
                                 logger.warn("Invalid deposit amount. Should be greater than 0.");
-                                System.out.println("Please Enter ammount grater than 0");
                                 continue;
                             }
                             break;
@@ -102,7 +91,6 @@ public class Main {
                             } catch (InputMismatchException e) {
                                 sc.nextLine();
                                 logger.warn("Invalid withdrawal amount entered.");
-                                System.out.println("Ammount not valid try again.. ");
                                 continue;
                             }
                             if (ammount > 0) {
@@ -112,25 +100,19 @@ public class Main {
                                     logger.info("Withdraw successful. New Balance: {}", curr_bal);
                                 } catch (Exception e) {
                                     logger.error("Withdrawal failed. Insufficient funds.");
-                                    System.out.println("Balance nai he!");
                                     continue;
                                 }
-                                System.out.println("Withdraw successful. New Balance: " + curr_bal);
                             } else {
                                 logger.warn("Invalid withdrawal amount. Should be greater than 0.");
-                                System.out.println("Please Enter ammount grater than 0");
                             }
                             break;
                         default:
                             logger.warn("Invalid option selected.");
-                            System.out.println("Enter valid option");
-                            continue;
                     }
                 }
             }
         } catch (Exception e) {
             logger.error("An error occurred: {}", e.getMessage());
-            System.out.print(e.getMessage());
         }
     }
 }
