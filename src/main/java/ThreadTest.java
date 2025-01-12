@@ -1,7 +1,5 @@
-import Model.Account;
-import dbhelper.DBH;
+import dbhelper.DbHelper;
 
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class ThreadTest {
@@ -9,7 +7,7 @@ public class ThreadTest {
     public static void main(String[] args)
     {
 
-        DBH db= new DBH();
+        DbHelper db= new DbHelper();
         //HashMap<Integer, Account> accounts= db.getAccounts();
         System.out.println("thread testing... ");
         Runnable r1 = ()->{

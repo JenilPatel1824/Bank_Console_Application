@@ -1,17 +1,17 @@
 package dbhelper;
 
-import Model.Account;
-import Model.CurrentAccount;
-import Model.SavingAccount;
+import model.Account;
+import model.CurrentAccount;
+import model.SavingAccount;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class DBH {
+public class DbHelper {
 
     private ConcurrentHashMap<Integer, Account> accounts = new ConcurrentHashMap<>();
 
-    public DBH()
+    public DbHelper()
     {
         Account a1=new SavingAccount("Jenil1",101,100);
         accounts.put(101,a1);
@@ -29,7 +29,7 @@ public class DBH {
         return accounts;
     }
 
-    public Integer userExists(String username) {
+    public Integer getAccountNoByUsername(String username) {
         for (Account account : accounts.values()) {
             if (account.getAcc_holder_name().equals(username)) {
                 return account.getAcc_no();
@@ -38,14 +38,14 @@ public class DBH {
         return null;
     }
 
-    public double view_balance(int acc_no)
+    public double viewBalance(int accNo)
     {
-        if(!check_accno(acc_no) )
+        if(!isValidAccount(accNo) )
         {
             System.out.println("Acc no invalid");
             return -1;
         }
-        Account a = accounts.get(acc_no);
+        Account a = accounts.get(accNo);
         return a.getBalance();
     }
     //Method Overloading
@@ -58,7 +58,7 @@ public class DBH {
         throw new IllegalArgumentException("Account holder not found");
     }
     public double withdraw(int acc_no,double amount) {
-        if(!check_accno(acc_no) )
+        if(!isValidAccount(acc_no) )
         {
             System.out.println("Acc no invalid");
             return -1;
@@ -77,7 +77,7 @@ public class DBH {
                 catch (Exception e)
                 {
                     try {
-                        throw new Exception("Balance nahi he bhai!!");
+                        throw new Exception("Aukat me re bhai, garib hai tu!");
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
@@ -87,19 +87,21 @@ public class DBH {
         });
          return amt.get();
     }
-    public double deposit(int acc_no,double amount)  {
-        if(!check_accno(acc_no) )
+    public double deposit(int accNo,double amount)  {
+        if(!isValidAccount(accNo) )
         {
+            // Use logger here
             System.out.println("Acc no invalid");
             return -1;
         }
         if(amount<=0)
         {
+            // Use logger
             System.out.println("amount invalid");
             return -2;
         }
         AtomicReference<Double> amt = new AtomicReference<>((double) 0);
-         accounts.compute(acc_no, (key, account) -> {
+         accounts.compute(accNo, (key, account) -> {
             if (account != null) {
                 //account.setBalance(account.getBalance() + amount);  // Update balance atomically
                 amt.set(account.deposit(amount));
@@ -109,8 +111,8 @@ public class DBH {
          return amt.get();
     }
 
-    public boolean check_accno(int account_no)
+    public boolean isValidAccount(int accountNo)
     {
-        return accounts.containsKey(account_no);
+        return accounts.containsKey(accountNo);
     }
 }

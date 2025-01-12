@@ -1,4 +1,4 @@
-package Model;
+package model;
 
 public abstract class Account {
     private String acc_holder_name;

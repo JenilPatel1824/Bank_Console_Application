@@ -1,6 +1,5 @@
-import dbhelper.DBH;
+import dbhelper.DbHelper;
 
-import java.lang.invoke.LambdaMetafactory;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -10,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         try {
 
-            DBH db = new DBH();
+            DbHelper db = new DbHelper();
             Scanner sc = new Scanner(System.in);
 
             System.out.println("Application Started..");
