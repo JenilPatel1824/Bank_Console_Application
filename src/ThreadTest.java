@@ -8,6 +8,7 @@ public class ThreadTest {
 
     public static void main(String[] args)
     {
+
         DBH db= new DBH();
         //HashMap<Integer, Account> accounts= db.getAccounts();
         System.out.println("thread testing... ");
@@ -127,17 +128,15 @@ public class ThreadTest {
         for(int i=0;i<100;i++)
         {
             Runnable loop = ()-> {
-                db.deposit(101, 100);
+                    db.deposit(101, 100);
             };
             executorService.submit(loop);
-
         }
 
         executorService.shutdown();
         try{
             executorService.awaitTermination(60, TimeUnit.SECONDS);
             System.out.println("Bal: "+db.view_balance(101));
-
         }
         catch (Exception e)
         {

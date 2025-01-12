@@ -26,7 +26,7 @@ public abstract class Account {
             throw new Exception("Insufficient balance");
         }
     }
-    public double deposite(double ammount){
+    public double deposit(double ammount){
         double current_bal=getBalance();
         setBalance(current_bal+ammount);
         return getBalance();

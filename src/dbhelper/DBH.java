@@ -4,8 +4,8 @@ import Model.Account;
 import Model.CurrentAccount;
 import Model.SavingAccount;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DBH {
 
@@ -40,6 +40,11 @@ public class DBH {
 
     public double view_balance(int acc_no)
     {
+        if(!check_accno(acc_no) )
+        {
+            System.out.println("Acc no invalid");
+            return -1;
+        }
         Account a = accounts.get(acc_no);
         return a.getBalance();
     }
@@ -52,31 +57,60 @@ public class DBH {
         }
         throw new IllegalArgumentException("Account holder not found");
     }
-    public double withdraw(int acc_no,double amount) throws Exception
-    {
-        return accounts.compute(acc_no, (key, account) -> {
+    public double withdraw(int acc_no,double amount) {
+        if(!check_accno(acc_no) )
+        {
+            System.out.println("Acc no invalid");
+            return -1;
+        }
+        if(amount<=0)
+        {
+            System.out.println("amount invalid");
+            return -2;
+        }
+         AtomicReference<Double> amt = new AtomicReference<>((double) 0);
+         accounts.compute(acc_no, (key, account) -> {
             if (account != null) {
-                // Check if the balance is sufficient
-                if (account.getBalance() >= amount) {
-                    account.setBalance(account.getBalance() - amount);  // Update balance atomically
-                } else {
+                try {
+                    amt.set(account.withdraw(amount));
+                }
+                catch (Exception e)
+                {
                     try {
-                        throw new Exception("Insufficient funds");
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
+                        throw new Exception("Balance nahi he bhai!!");
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
                     }
                 }
             }
-            return account;  // Return the updated Account object
-        }).getBalance();
+            return account;
+        });
+         return amt.get();
     }
-    public double deposit(int acc_no,double amount)
-    {
-        return accounts.compute(acc_no, (key, account) -> {
+    public double deposit(int acc_no,double amount)  {
+        if(!check_accno(acc_no) )
+        {
+            System.out.println("Acc no invalid");
+            return -1;
+        }
+        if(amount<=0)
+        {
+            System.out.println("amount invalid");
+            return -2;
+        }
+        AtomicReference<Double> amt = new AtomicReference<>((double) 0);
+         accounts.compute(acc_no, (key, account) -> {
             if (account != null) {
-                account.setBalance(account.getBalance() + amount);  // Update balance atomically
+                //account.setBalance(account.getBalance() + amount);  // Update balance atomically
+                amt.set(account.deposit(amount));
             }
-            return account;  // Return the updated Account object
-        }).getBalance();
+            return account;
+        });
+         return amt.get();
+    }
+
+    public boolean check_accno(int account_no)
+    {
+        return accounts.containsKey(account_no);
     }
 }
