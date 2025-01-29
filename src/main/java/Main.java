@@ -6,112 +6,182 @@ import java.util.Scanner;
 
 public class Main {
 
-    // Creating logger instance
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
         try {
             DbHelper db = new DbHelper();
+
             Scanner sc = new Scanner(System.in);
+
             logger.info("Application started..");
 
-            while (true) {
-                System.out.println("Enter Username: ");
-                String uname = sc.nextLine().trim();
+            while (true)
+            {
+                System.out.println("Enter User ID (or type 'exit' to quit): ");
 
-                if (uname.isEmpty()) {
-                    logger.warn("Username is empty. Prompting user to try again.");
-                    continue;
-                }
+                String input = sc.nextLine();
 
-                if (uname.equalsIgnoreCase("exit")) {
-                    logger.info("User requested to exit.");
+                if (input.equalsIgnoreCase("exit"))
+                {
+                    System.out.println("Exiting the application...");
+
                     break;
                 }
 
-                Integer acc_no = db.getAccountNoByUsername(uname);
-                if (acc_no == null) {
-                    logger.error("Username {} not found!", uname);
+                long userId;
+
+                try
+                {
+                    userId = Long.parseLong(input);
+                }
+
+                catch (NumberFormatException e)
+                {
+                    logger.error("Enter valid user id");
+
                     continue;
                 }
 
-                logger.info("login successful for {}", uname);
-                System.out.println("Welcome " + uname);
+                System.out.println("Enter account number: ");
+
+                long accountNumber;
+
+                try
+                {
+                    accountNumber = sc.nextLong();
+                }
+
+                catch (InputMismatchException e)
+                {
+                    logger.error("Enter valid account number");
+
+                    continue;
+                }
+
+                if (!db.validateUser(userId,accountNumber))
+                {
+                    logger.error("No record found with provided user id and account number");
+
+                    continue;
+                }
+
+                logger.info("login successful for {} : {}", userId,accountNumber);
+
+                System.out.println("Welcome " + userId);
+
                 System.out.println("Select action: ");
+
                 System.out.println("1. Check Balance");
+
                 System.out.println("2. Deposit");
+
                 System.out.println("3. Withdraw");
+
                 System.out.println("4. Logout");
 
                 int action = 0;
-                while (true) {
-                    try {
+
+                while (true)
+                {
+                    try
+                    {
                         System.out.println("Select: ");
+
                         action = sc.nextInt();
-                        if(action == 4){
+
+                        if(action == 4)
+                        {
                             sc.nextLine();
+
                             break;
                         }
-                    } catch (InputMismatchException e) {
+                    }
+                    catch (InputMismatchException e)
+                    {
                         sc.nextLine();
+
                         logger.warn("Invalid input provided. Asking user to enter valid input.");
+
                         continue;
                     }
-                    switch (action) {
+
+                    switch (action)
+                    {
                         case 1:
-                            double bal = db.viewBalance(acc_no);
-                            logger.info("User requested balance check. Balance: {}", bal);
-                            System.out.println("Balance: " + bal);
+
+                            db.checkBalance(userId,accountNumber);
+
                             break;
 
                         case 2:
-                            double ammount;
-                            try {
+
+                            double depositAmmount;
+
+                            try
+                            {
                                 System.out.println("Enter amount to deposit: ");
-                                ammount = sc.nextDouble();
+
+                                depositAmmount = sc.nextDouble();
+
                                 sc.nextLine();
-                            } catch (InputMismatchException e) {
+                            }
+                            catch (InputMismatchException e)
+                            {
                                 sc.nextLine();
+
                                 logger.warn("Invalid deposit amount entered.");
+
                                 continue;
                             }
-                            if (ammount > 0) {
-                                double curr_bal = db.deposit(acc_no, ammount);
-                                logger.info("Deposit successful. New Balance: {}", curr_bal);
-                            } else {
-                                logger.warn("Invalid deposit amount. Should be greater than 0.");
-                                continue;
-                            }
+
+                            db.deposit(userId, accountNumber,depositAmmount);
+
                             break;
+
                         case 3:
-                            try {
+
+                            double withdrawAmount;
+
+                            logger.info("User Requested withdraw: ");
+
+                            try
+                            {
                                 System.out.println("Enter amount to withdraw: ");
-                                ammount = sc.nextDouble();
+
+                                withdrawAmount = sc.nextDouble();
+
                                 sc.nextLine();
-                            } catch (InputMismatchException e) {
+                            }
+                            catch (InputMismatchException e)
+                            {
                                 sc.nextLine();
+
                                 logger.warn("Invalid withdrawal amount entered.");
+
                                 continue;
                             }
-                            if (ammount > 0) {
-                                double curr_bal;
-                                try {
-                                    curr_bal = db.withdraw(acc_no, ammount);
-                                    logger.info("Withdraw successful. New Balance: {}", curr_bal);
-                                } catch (Exception e) {
-                                    logger.error("Withdrawal failed. Insufficient funds.");
-                                    continue;
-                                }
-                            } else {
-                                logger.warn("Invalid withdrawal amount. Should be greater than 0.");
+
+                            try
+                            {
+                                db.withdraw(userId, accountNumber,withdrawAmount);
+                            }
+                            catch (Exception e)
+                            {
+                                logger.error("Withdrawal failed. Insufficient funds.");
+
+                                continue;
                             }
                             break;
+
                         default:
                             logger.warn("Invalid option selected.");
                     }
                 }
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e)
+        {
             logger.error("An error occurred: {}", e.getMessage());
         }
     }

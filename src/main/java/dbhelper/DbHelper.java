@@ -1,126 +1,128 @@
 package dbhelper;
 
 import Model.Account;
-import Model.CurrentAccount;
-import Model.SavingAccount;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DbHelper {
     private static final Logger logger = LoggerFactory.getLogger(DbHelper.class);
-    private ConcurrentHashMap<Integer, Account> accounts = new ConcurrentHashMap<>();
+
+    private static final ConcurrentHashMap<Long, Account> accounts= new ConcurrentHashMap<>();
+
     public DbHelper()
     {
-        logger.debug("initializing data...");
-        Account a1=new SavingAccount("Jenil1",101,100);
-        accounts.put(101,a1);
-        Account a2=new SavingAccount("Jenil2",102,100);
-        accounts.put(102,a2);
-        Account a3=new SavingAccount("Jenil3",103,100);
-        accounts.put(103,a3);
-        Account a4=new SavingAccount("Jenil4",104,100);
-        accounts.put(104,a4);
-        Account a5=new CurrentAccount("Jenil5",105,100);
-        accounts.put(105,a5);
-        logger.info("DbHelper initialized with accounts.");
+        logger.info("DbHelper Constructor called");
+
+        Account firstAccount= new Account(101,1,100);
+
+        accounts.put(1L,firstAccount);
+
+        Account secoundAccount= new Account(102,2,100);
+
+        accounts.put(2L,secoundAccount);
+
+        Account thirdAccount= new Account(103,3,100);
+
+        accounts.put(3L,thirdAccount);
+
+        Account fourthAccount= new Account(104,4,100);
+
+        accounts.put(4L,fourthAccount);
+
+        Account fifthAccount= new Account(105,5,100);
+
+        accounts.put(5L,fifthAccount);
+
+        logger.info("DbHelper Constructor Completed");
+
     }
 
-    public ConcurrentHashMap<Integer, Account> getAccounts() {
-        return accounts;
-    }
-
-    public Integer getAccountNoByUsername(String username) {
-        logger.debug("Getting account number for username: {}", username);
-        for (Account account : accounts.values()) {
-            if (account.getAccHolderName().equals(username)) {
-                return account.getAccNo();
-            }
-        }
-        logger.warn("Username not found: {}", username);
-        return null;
-    }
-
-    public double viewBalance(int accNo)
+    public double checkBalance(long userId,long accountNumber)
     {
-        logger.debug("Checking balance for account number: {}", accNo);
-        if(!isValidAccountNumber(accNo) )
-        {
-            logger.error("Invalid account number: {}", accNo);
-            return -1;
-        }
-        Account a = accounts.get(accNo);
-        logger.info("Balance for account number {}: {}", accNo, a.getBalance());
-        return a.getBalance();
-    }
-    //Method Overloading
-    public double viewBalance(String accHolderName) {
-        logger.debug("Checking balance for account holder: {}", accHolderName);
-        for (Account account : accounts.values()) {
-            if (account.getAccHolderName().equals(accHolderName)) {
-                logger.info("Balance for account holder {}: {}", accHolderName, account.getBalance());
-                return account.getBalance();
+        logger.debug("Checking balance for account number: {}", accountNumber);
+
+        return accounts.computeIfPresent(userId, (key, account) -> {
+
+            if (account.getAccountNumber()==accountNumber)
+            {
+                double balance = account.getBalance();
+
+                logger.info("checkBalance Successfull for {} {} : {}",userId,accountNumber,balance);
+
+                return account;
             }
-        }
-        logger.error("Account holder not found: {}", accHolderName);
-        throw new IllegalArgumentException("Account holder not found");
-    }
-    public double withdraw(int accNo,double amount) {
-        logger.debug("Withdrawing {} from account number: {}", amount, accNo);
-        if(!isValidAccountNumber(accNo) )
-        {
-            logger.error("Invalid account number: {}", accNo);
-            return -1;
-        }
-        if(amount<=0)
-        {
-            logger.error("Invalid withdrawal amount: {}", amount);
-            return -2;
-        }
-         AtomicReference<Double> amt = new AtomicReference<>((double) 0);
-         accounts.compute(accNo, (key, account) -> {
-            if (account != null) {
-                try {
-                    amt.set(account.withdraw(amount));
-                    logger.info("Withdrawal successful for account number {}. New balance: {}", accNo, amt.get());
-                }
-                catch (Exception e)
-                {
-                    logger.error("Error while withdrawing from account number {}: {}", accNo, e.getMessage());
-                }
+            else
+            {
+                logger.error("Account number mismatch or invalid account");
+
+                return account;
             }
-            return account;
-        });
-         return amt.get();
-    }
-    public double deposit(int accNo,double amount)  {
-        logger.debug("Depositing {} to account number: {}", amount, accNo);
-        if(!isValidAccountNumber(accNo) )
-        {
-            logger.error("Invalid account number: {}", accNo);
-            return -1;
-        }
-        if(amount<=0)
-        {
-            logger.error("Invalid deposit amount: {}", amount);
-            return -2;
-        }
-        AtomicReference<Double> amt = new AtomicReference<>((double) 0);
-         accounts.compute(accNo, (key, account) -> {
-            if (account != null) {
-                //account.setBalance(account.getBalance() + amount);  // Update balance atomically
-                amt.set(account.deposit(amount));
-                logger.info("Deposit successful for account number {}. New balance: {}", accNo, amt.get());
-            }
-            return account;
-        });
-         return amt.get();
+        }) != null ? accounts.get(userId).getBalance() : 0.0;
     }
 
-    public boolean isValidAccountNumber(int accNo)
+    public double withdraw(long userId,long accountNumber,double withdrawAmount)
     {
-        return accounts.containsKey(accNo);
+        logger.debug("Withdrawing {} from account number: {}", withdrawAmount, accountNumber);
+
+        return accounts.computeIfPresent(userId, (key, account) -> {
+
+            if (account.getAccountNumber()==accountNumber)
+            {
+                double balance = account.withdraw(withdrawAmount);
+
+                logger.info("withdraw Successfull for {} {} : new balance: {}",userId,accountNumber,balance);
+
+                return account;
+            }
+            else
+            {
+                logger.error("Account number mismatch or invalid account");
+
+                return account;
+            }
+        }) != null ? accounts.get(userId).getBalance() : 0.0;
+    }
+
+    public double deposit(long userId,long accountNumber,double depositAmount)
+    {
+        logger.debug("Depositing {} to account number: {}", depositAmount, accountNumber);
+
+        return accounts.computeIfPresent(userId, (key, account) -> {
+
+            if (account.getAccountNumber()==accountNumber)
+            {
+                double balance = account.deposit(depositAmount);
+
+                logger.info("deposit Successfull for {} {} : {}",userId,accountNumber,balance);
+
+                return account;
+            }
+            else
+            {
+                logger.error("Account number mismatch or invalid account");
+
+                return account;
+            }
+        }) != null ? accounts.get(userId).getBalance() : 0.0;
+    }
+
+    public boolean validateUser(long userId, long accountNumber)
+    {
+        logger.debug("Validate user called for {} {}",userId , accountNumber);
+
+        Account account = accounts.get(userId);
+
+        if(account!=null)
+        {
+            if(account.getAccountNumber()==accountNumber)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

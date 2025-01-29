@@ -1,59 +1,85 @@
 package Model;
 
-public abstract class Account {
-    private String accHolderName;
-    private int accNo;
-    private double balance;
+import java.util.concurrent.atomic.AtomicReference;
+public class Account
+{
+    private long accountNumber;
 
-    public Account(String accHolderName,int accNo,double balance)
+    private AtomicReference<Double> balance;
+
+    private long userId;
+
+    public Account(long accountNumber,long userId)
     {
-        this.accHolderName=accHolderName;
-        this.accNo=accNo;
-        this.balance=balance;
+        this.userId=userId;
+
+        this.accountNumber=accountNumber;
+
+        this.balance=new AtomicReference<Double>(0.0);
     }
 
-    public double checkBalance(int accNo){
-        return this.getBalance();
-    }
-    public  double withdraw(double amt) throws Exception {
-        if(this.getBalance()>=amt)
+    public Account(long accountNumber, long userId, double balance)
+    {
+        this.userId = userId;
+
+        this.accountNumber=accountNumber;
+
+        if(balance>=0)
         {
-            double currentBal=getBalance();
-            this.setBalance(currentBal-amt);
-            return this.getBalance();
+            this.balance = new AtomicReference<>(balance);
         }
-        else {
-            throw new Exception("Insufficient balance");
+        else
+        {
+            throw new IllegalArgumentException("Please enter valid initial amount");
         }
     }
-    public double deposit(double ammount){
-        double currentBal=getBalance();
-        setBalance(currentBal+ammount);
-        return getBalance();
-    }
-    public abstract String accType();
 
-    public String getAccHolderName() {
-        return accHolderName;
-    }
-
-    public void setAccHolderName(String accHolderName) {
-        this.accHolderName = accHolderName;
+    public double deposit(double amount)
+    {
+        if(amount<=0)
+        {
+            throw new IllegalArgumentException("Amount must be greater than 0");
+        }
+        return balance.updateAndGet(current_balance->current_balance+amount);
     }
 
-    public int getAccNo() {
-        return accNo;
+    public double withdraw(double amount)
+    {
+        if(amount<=0)
+        {
+            throw new IllegalArgumentException("Amount must be greater than 0");
+        }
+
+        if(amount>balance.get())
+        {
+            throw new IllegalArgumentException("Insufficient Balance!!");
+        }
+
+        return balance.updateAndGet(current_balance->current_balance-amount);
     }
 
-    public void setAccNo(int accNo) {
-        this.accNo = accNo;
+    public long getAccountNumber()
+    {
+        return accountNumber;
     }
 
-    public double getBalance() {
-        return balance;
+    public void setAccountNumber(long accountNumber)
+    {
+        this.accountNumber = accountNumber;
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
+    public double getBalance()
+    {
+        return balance.get();
+    }
+
+    public long getUserId()
+    {
+        return userId;
+    }
+
+    public void setUserId(long userId)
+    {
+        this.userId=userId;
     }
 }
