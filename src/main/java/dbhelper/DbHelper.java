@@ -110,7 +110,7 @@ public class DbHelper {
         }) != null ? accounts.get(userId).getBalance() : 0.0;
     }
 
-    public boolean validateUser(long userId, long accountNumber)
+    public boolean isValidUser(long userId, long accountNumber)
     {
         logger.debug("Validate user called for {} {}",userId , accountNumber);
 

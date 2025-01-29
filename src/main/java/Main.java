@@ -59,7 +59,7 @@ public class Main {
                     continue;
                 }
 
-                if (!db.validateUser(userId,accountNumber))
+                if (!db.isValidUser(userId,accountNumber))
                 {
                     logger.error("No record found with provided user id and account number");
 
